@@ -13,12 +13,16 @@ RUN uv sync
 
 COPY oma_service_mcp ./oma_service_mcp/
 
-RUN chown -R 1001:0 ${APP_HOME}
+RUN chown -R 1001:0 ${APP_HOME} && \
+    find ${APP_HOME} -type d -exec chmod 755 {} \; && \
+    find ${APP_HOME} -type f -exec chmod 644 {} \;
 
 USER 1001
 
 # Disable file logging in containers - only log to stderr
 ENV LOG_TO_FILE=false
+# Add app home to PYTHONPATH so the module can be found
+ENV PYTHONPATH=${APP_HOME}
 
 EXPOSE 8000
 
