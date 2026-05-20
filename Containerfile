@@ -14,8 +14,7 @@ RUN uv sync
 COPY oma_service_mcp ./oma_service_mcp/
 
 RUN chown -R 1001:0 ${APP_HOME} && \
-    find ${APP_HOME} -type d -exec chmod 755 {} \; && \
-    find ${APP_HOME} -type f -exec chmod 644 {} \;
+    chmod -R g=u ${APP_HOME}
 
 USER 1001
 
