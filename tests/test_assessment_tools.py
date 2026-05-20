@@ -1,7 +1,6 @@
 """Tests for assessment tools."""
 
 import json
-import pytest
 from unittest.mock import AsyncMock, patch
 
 from oma_service_mcp.src.tools import assessment_tools
@@ -64,6 +63,10 @@ class TestCalculateMigrationEstimationTool:
             mock_client.calculate_migration_estimation.assert_called_once_with(
                 assessment_id=sample_assessment_id,
                 cluster_id=sample_cluster_id,
+                transfer_rate_mbps=None,
+                work_hours_per_day=None,
+                troubleshoot_mins_per_vm=None,
+                post_migration_engineers=None,
             )
 
 

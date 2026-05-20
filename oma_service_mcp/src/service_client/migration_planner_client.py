@@ -170,27 +170,62 @@ class MigrationPlannerClient:
             )
             return result
 
+    @staticmethod
+    def _build_estimation_body(
+        cluster_id: str,
+        transfer_rate_mbps: Optional[int] = None,
+        work_hours_per_day: Optional[int] = None,
+        troubleshoot_mins_per_vm: Optional[int] = None,
+        post_migration_engineers: Optional[int] = None,
+    ) -> dict[str, Any]:
+        """Build request body for estimation endpoints."""
+        params = {
+            k: v
+            for k, v in {
+                "transfer_rate_mbps": transfer_rate_mbps,
+                "work_hours_per_day": work_hours_per_day,
+                "troubleshoot_mins_per_vm": troubleshoot_mins_per_vm,
+                "post_migration_engineers": post_migration_engineers,
+            }.items()
+            if v is not None
+        }
+        body: dict[str, Any] = {"clusterId": cluster_id}
+        if params:
+            body["params"] = params
+        return body
+
     @sanitize_exceptions
     async def calculate_migration_estimation(
         self,
         assessment_id: str,
         cluster_id: str,
+        transfer_rate_mbps: Optional[int] = None,
+        work_hours_per_day: Optional[int] = None,
+        troubleshoot_mins_per_vm: Optional[int] = None,
+        post_migration_engineers: Optional[int] = None,
     ) -> dict[str, Any]:
         """Calculate migration time estimation for a cluster.
 
         Args:
             assessment_id: The UUID of the assessment.
             cluster_id: The ID of the cluster to estimate migration time for.
+            transfer_rate_mbps: Network transfer rate in Mbps.
+            work_hours_per_day: Working hours per day for migration.
+            troubleshoot_mins_per_vm: Minutes allocated for troubleshooting per VM.
+            post_migration_engineers: Number of engineers for post-migration tasks.
 
         Returns:
-            dict: Migration estimation with total duration and breakdown by phase.
+            dict: Migration estimation with time breakdown and context.
         """
         log.info(
             "Calculating migration estimation for assessment %s, cluster %s",
             assessment_id,
             cluster_id,
         )
-        request_body = {"clusterId": cluster_id}
+        request_body = self._build_estimation_body(
+            cluster_id, transfer_rate_mbps, work_hours_per_day,
+            troubleshoot_mins_per_vm, post_migration_engineers,
+        )
         async with self._get_client() as client:
             response = await client.post(
                 f"/api/v1/assessments/{assessment_id}/migration-estimation",
@@ -200,6 +235,51 @@ class MigrationPlannerClient:
             result = response.json()
             log.info(
                 "Successfully calculated migration estimation for assessment %s",
+                assessment_id,
+            )
+            return result
+
+    @sanitize_exceptions
+    async def calculate_migration_estimation_by_complexity(
+        self,
+        assessment_id: str,
+        cluster_id: str,
+        transfer_rate_mbps: Optional[int] = None,
+        work_hours_per_day: Optional[int] = None,
+        troubleshoot_mins_per_vm: Optional[int] = None,
+        post_migration_engineers: Optional[int] = None,
+    ) -> dict[str, Any]:
+        """Calculate migration estimation grouped by complexity level.
+
+        Args:
+            assessment_id: The UUID of the assessment.
+            cluster_id: The ID of the cluster to estimate migration time for.
+            transfer_rate_mbps: Network transfer rate in Mbps.
+            work_hours_per_day: Working hours per day for migration.
+            troubleshoot_mins_per_vm: Minutes allocated for troubleshooting per VM.
+            post_migration_engineers: Number of engineers for post-migration tasks.
+
+        Returns:
+            dict: Migration estimation grouped by OS+Disk combined complexity level.
+        """
+        log.info(
+            "Calculating migration estimation by complexity for assessment %s, cluster %s",
+            assessment_id,
+            cluster_id,
+        )
+        request_body = self._build_estimation_body(
+            cluster_id, transfer_rate_mbps, work_hours_per_day,
+            troubleshoot_mins_per_vm, post_migration_engineers,
+        )
+        async with self._get_client() as client:
+            response = await client.post(
+                f"/api/v1/assessments/{assessment_id}/migration-estimation/by-complexity",
+                json=request_body,
+            )
+            response.raise_for_status()
+            result = response.json()
+            log.info(
+                "Successfully calculated migration estimation by complexity for assessment %s",
                 assessment_id,
             )
             return result
@@ -236,4 +316,19 @@ class MigrationPlannerClient:
                 "Successfully calculated migration complexity for assessment %s",
                 assessment_id,
             )
+            return result
+
+    @sanitize_exceptions
+    async def get_info(self) -> dict[str, Any]:
+        """Get system information.
+
+        Returns:
+            dict: System info with gitCommit and versionName.
+        """
+        log.info("Getting system info")
+        async with self._get_client() as client:
+            response = await client.get("/api/v1/info")
+            response.raise_for_status()
+            result = response.json()
+            log.info("Successfully retrieved system info")
             return result

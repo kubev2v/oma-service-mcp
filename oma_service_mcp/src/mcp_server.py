@@ -12,7 +12,7 @@ from oma_service_mcp.utils.auth import get_access_token
 from oma_service_mcp.src.settings import settings
 
 # Import tool modules
-from oma_service_mcp.src.tools import source_tools, assessment_tools
+from oma_service_mcp.src.tools import source_tools, assessment_tools, system_tools
 
 
 class OMAServiceMCPServer:
@@ -56,7 +56,11 @@ class OMAServiceMCPServer:
         self.mcp.tool()(self._wrap_tool(assessment_tools.get_assessment))
         self.mcp.tool()(self._wrap_tool(assessment_tools.calculate_cluster_requirements))
         self.mcp.tool()(self._wrap_tool(assessment_tools.calculate_migration_estimation))
+        self.mcp.tool()(self._wrap_tool(assessment_tools.calculate_migration_estimation_by_complexity))
         self.mcp.tool()(self._wrap_tool(assessment_tools.calculate_migration_complexity))
+
+        # System tools
+        self.mcp.tool()(self._wrap_tool(system_tools.get_system_info))
 
     def _wrap_tool(
         self, tool_func: Callable[..., Awaitable[Any]]

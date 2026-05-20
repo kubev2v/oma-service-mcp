@@ -39,7 +39,9 @@ class TestOMAServiceMCPServer:
             "get_assessment",
             "calculate_cluster_requirements",
             "calculate_migration_estimation",
+            "calculate_migration_estimation_by_complexity",
             "calculate_migration_complexity",
+            "get_system_info",
         ]
 
         assert len(tools) == len(expected_tools)
