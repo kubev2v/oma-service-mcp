@@ -179,6 +179,22 @@ async def calculate_migration_estimation(
         str,
         Field(description="The ID of the cluster within the assessment."),
     ],
+    transfer_rate_mbps: Annotated[
+        Optional[int],
+        Field(default=None, description="Network transfer rate in Mbps. Server default if omitted."),
+    ] = None,
+    work_hours_per_day: Annotated[
+        Optional[int],
+        Field(default=None, description="Working hours per day for migration. Server default if omitted."),
+    ] = None,
+    troubleshoot_mins_per_vm: Annotated[
+        Optional[int],
+        Field(default=None, description="Troubleshooting minutes per VM. Server default if omitted."),
+    ] = None,
+    post_migration_engineers: Annotated[
+        Optional[int],
+        Field(default=None, description="Number of post-migration engineers. Server default if omitted."),
+    ] = None,
 ) -> str:
     """Calculate estimated migration duration for a cluster.
 
@@ -201,9 +217,74 @@ async def calculate_migration_estimation(
     result = await client.calculate_migration_estimation(
         assessment_id=assessment_id,
         cluster_id=cluster_id,
+        transfer_rate_mbps=transfer_rate_mbps,
+        work_hours_per_day=work_hours_per_day,
+        troubleshoot_mins_per_vm=troubleshoot_mins_per_vm,
+        post_migration_engineers=post_migration_engineers,
     )
 
     log.info("Successfully calculated migration estimation for assessment %s", assessment_id)
+    return json.dumps(result, indent=2, default=str)
+
+
+async def calculate_migration_estimation_by_complexity(
+    get_access_token_func: Callable[[], str | None],
+    assessment_id: Annotated[
+        str,
+        Field(description="The UUID of the assessment."),
+    ],
+    cluster_id: Annotated[
+        str,
+        Field(description="The ID of the cluster within the assessment."),
+    ],
+    transfer_rate_mbps: Annotated[
+        Optional[int],
+        Field(default=None, description="Network transfer rate in Mbps. Server default if omitted."),
+    ] = None,
+    work_hours_per_day: Annotated[
+        Optional[int],
+        Field(default=None, description="Working hours per day for migration. Server default if omitted."),
+    ] = None,
+    troubleshoot_mins_per_vm: Annotated[
+        Optional[int],
+        Field(default=None, description="Troubleshooting minutes per VM. Server default if omitted."),
+    ] = None,
+    post_migration_engineers: Annotated[
+        Optional[int],
+        Field(default=None, description="Number of post-migration engineers. Server default if omitted."),
+    ] = None,
+) -> str:
+    """Calculate migration time estimation grouped by OS and disk combined complexity level.
+
+    Groups migration effort by difficulty tier, helping plan migration waves.
+
+    Prerequisites:
+        - Valid assessment UUID (from list_assessments)
+        - Valid cluster ID within that assessment's inventory
+
+    Returns:
+        str: Migration estimation grouped by combined complexity level.
+    """
+    log.info(
+        "Calculating migration estimation by complexity: assessment=%s, cluster=%s",
+        assessment_id,
+        cluster_id,
+    )
+
+    client = MigrationPlannerClient(get_access_token_func())
+    result = await client.calculate_migration_estimation_by_complexity(
+        assessment_id=assessment_id,
+        cluster_id=cluster_id,
+        transfer_rate_mbps=transfer_rate_mbps,
+        work_hours_per_day=work_hours_per_day,
+        troubleshoot_mins_per_vm=troubleshoot_mins_per_vm,
+        post_migration_engineers=post_migration_engineers,
+    )
+
+    log.info(
+        "Successfully calculated migration estimation by complexity for assessment %s",
+        assessment_id,
+    )
     return json.dumps(result, indent=2, default=str)
 
 

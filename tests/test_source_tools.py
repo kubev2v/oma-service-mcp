@@ -1,7 +1,6 @@
 """Tests for source tools."""
 
 import json
-import pytest
 from unittest.mock import AsyncMock, patch
 
 from oma_service_mcp.src.tools import source_tools
