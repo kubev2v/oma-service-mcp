@@ -33,7 +33,7 @@ class MigrationPlannerClient:
             "Content-Type": "application/json",
         }
         if self.access_token:
-            headers["Authorization"] = f"Bearer {self.access_token}"
+            headers["X-Authorization"] = f"Bearer {self.access_token}"
         return headers
 
     def _get_client(self) -> httpx.AsyncClient:

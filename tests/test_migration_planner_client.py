@@ -28,7 +28,7 @@ class TestMigrationPlannerClient:
     def test_get_headers_with_token(self, client: MigrationPlannerClient, mock_access_token: str):
         """Test headers include authorization when token is present."""
         headers = client._get_headers()
-        assert headers["Authorization"] == f"Bearer {mock_access_token}"
+        assert headers["X-Authorization"] == f"Bearer {mock_access_token}"
         assert headers["Accept"] == "application/json"
         assert headers["Content-Type"] == "application/json"
 
@@ -40,7 +40,7 @@ class TestMigrationPlannerClient:
             mock_get_setting.return_value = "http://localhost:8080"
             client = MigrationPlannerClient(None)
             headers = client._get_headers()
-            assert "Authorization" not in headers
+            assert "X-Authorization" not in headers
 
 
 class TestCalculateMigrationEstimation:
