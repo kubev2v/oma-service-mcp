@@ -1,16 +1,29 @@
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: oma-service-mcp
-  labels:
-    app: oma-service-mcp
-spec:
-  to:
-    kind: Service
-    name: oma-service-mcp
-    weight: 100
-  port:
-    targetPort: http
-  tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
+# SECURITY: This Route is disabled by default. The MCP server has no built-in
+# authentication — it relies on lightspeed-stack (or another auth gateway) to
+# authenticate callers and forward bearer tokens.
+#
+# Exposing the Route without an authenticating proxy in front allows
+# unauthenticated access to the Migration Planner API.
+#
+# To enable external access, deploy behind an OAuth proxy or add
+# haproxy.router.openshift.io/auth annotations, then uncomment below.
+#
+# apiVersion: route.openshift.io/v1
+# kind: Route
+# metadata:
+#   name: oma-service-mcp
+#   labels:
+#     app: oma-service-mcp
+#   annotations:
+#     # Require authentication before traffic reaches the MCP server
+#     haproxy.router.openshift.io/rate-limit-connections: "true"
+# spec:
+#   to:
+#     kind: Service
+#     name: oma-service-mcp
+#     weight: 100
+#   port:
+#     targetPort: http
+#   tls:
+#     termination: edge
+#     insecureEdgeTerminationPolicy: Redirect
