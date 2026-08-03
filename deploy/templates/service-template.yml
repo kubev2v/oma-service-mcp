@@ -77,9 +77,22 @@ objects:
           labels:
             app: oma-service-mcp
         spec:
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: oma-service-mcp
               image: ${IMAGE}:${IMAGE_TAG}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                capabilities:
+                  drop:
+                    - ALL
+                seccompProfile:
+                  type: RuntimeDefault
               ports:
                 - containerPort: 8000
                   protocol: TCP
@@ -109,6 +122,9 @@ objects:
                 limits:
                   cpu: ${CPU_LIMIT}
                   memory: ${MEMORY_LIMIT}
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
               readinessProbe:
                 httpGet:
                   path: /health
@@ -121,3 +137,6 @@ objects:
                   port: 8000
                 initialDelaySeconds: 10
                 periodSeconds: 30
+          volumes:
+            - name: tmp
+              emptyDir: {}
