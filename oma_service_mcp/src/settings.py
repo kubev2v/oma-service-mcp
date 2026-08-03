@@ -4,7 +4,7 @@ from typing import ClassVar, Any
 from typing import Literal
 
 from dotenv import load_dotenv
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Load environment variables with error handling
@@ -55,7 +55,7 @@ class Settings(BaseSettings):
 
     # Migration Planner API Configuration
     MIGRATION_PLANNER_URL: str = Field(
-        default="http://localhost:7443",
+        default="https://localhost:7443",
         json_schema_extra={
             "env": "MIGRATION_PLANNER_URL",
             "description": "Migration Planner API base URL",
@@ -110,6 +110,21 @@ class Settings(BaseSettings):
         "validate_assignment": True,
         "frozen": False,
     }
+
+    @model_validator(mode="after")
+    def _reject_http_with_forwarded_auth(self) -> "Settings":
+        """Reject http:// URLs when AUTH_TYPE is 'forwarded'.
+
+        Forwarding a bearer token over cleartext HTTP is a credential leak.
+        """
+        from urllib.parse import urlparse
+
+        if self.AUTH_TYPE == "forwarded" and urlparse(self.MIGRATION_PLANNER_URL).scheme == "http":
+            raise ValueError(
+                "MIGRATION_PLANNER_URL must use https:// when AUTH_TYPE is 'forwarded'. "
+                "Forwarding bearer tokens over plaintext HTTP exposes credentials."
+            )
+        return self
 
 
 def validate_config(cfg: Settings) -> None:

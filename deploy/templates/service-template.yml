@@ -17,7 +17,7 @@ parameters:
     value: "2"
   - name: MIGRATION_PLANNER_URL
     description: Migration Planner API base URL
-    value: "http://migration-planner:7443"
+    value: "https://migration-planner:7443"
   - name: AUTH_TYPE
     description: Auth mode (forwarded or none)
     value: "forwarded"

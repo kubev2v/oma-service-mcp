@@ -16,7 +16,7 @@ class TestSettings:
             assert s.MCP_HOST == "0.0.0.0"
             assert s.MCP_PORT == 8000
             assert s.TRANSPORT == "streamable-http"
-            assert s.MIGRATION_PLANNER_URL == "http://localhost:7443"
+            assert s.MIGRATION_PLANNER_URL == "https://localhost:7443"
             assert s.AUTH_TYPE == "none"
             assert s.LOGGING_LEVEL == "INFO"
             assert s.LOG_TO_FILE is True
@@ -27,7 +27,7 @@ class TestSettings:
             "MCP_HOST": "127.0.0.1",
             "MCP_PORT": "9090",
             "TRANSPORT": "sse",
-            "MIGRATION_PLANNER_URL": "http://planner:7443",
+            "MIGRATION_PLANNER_URL": "https://planner:7443",
             "AUTH_TYPE": "forwarded",
             "LOGGING_LEVEL": "DEBUG",
             "LOG_TO_FILE": "false",
@@ -37,7 +37,7 @@ class TestSettings:
             assert s.MCP_HOST == "127.0.0.1"
             assert s.MCP_PORT == 9090
             assert s.TRANSPORT == "sse"
-            assert s.MIGRATION_PLANNER_URL == "http://planner:7443"
+            assert s.MIGRATION_PLANNER_URL == "https://planner:7443"
             assert s.AUTH_TYPE == "forwarded"
             assert s.LOGGING_LEVEL == "DEBUG"
             assert s.LOG_TO_FILE is False
@@ -71,6 +71,37 @@ class TestSettings:
         with patch.dict("os.environ", {"MCP_PORT": "70000"}, clear=True):
             with pytest.raises(Exception):
                 Settings()
+
+
+    def test_http_rejected_with_forwarded_auth(self):
+        """Test that http:// is rejected when AUTH_TYPE is forwarded."""
+        env = {
+            "MIGRATION_PLANNER_URL": "http://planner:7443",
+            "AUTH_TYPE": "forwarded",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            with pytest.raises(Exception, match="must use https://"):
+                Settings()
+
+    def test_http_allowed_with_no_auth(self):
+        """Test that http:// is allowed when AUTH_TYPE is none."""
+        env = {
+            "MIGRATION_PLANNER_URL": "http://planner:7443",
+            "AUTH_TYPE": "none",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            s = Settings()
+            assert s.MIGRATION_PLANNER_URL == "http://planner:7443"
+
+    def test_https_allowed_with_forwarded_auth(self):
+        """Test that https:// is accepted when AUTH_TYPE is forwarded."""
+        env = {
+            "MIGRATION_PLANNER_URL": "https://planner:7443",
+            "AUTH_TYPE": "forwarded",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            s = Settings()
+            assert s.MIGRATION_PLANNER_URL == "https://planner:7443"
 
 
 class TestValidateConfig:

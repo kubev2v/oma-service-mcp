@@ -5,5 +5,5 @@ metadata:
   labels:
     app: oma-service-mcp
 data:
-  migration-planner-url: "http://migration-planner:7443"
+  migration-planner-url: "https://migration-planner:7443"
   auth-type: "forwarded"
