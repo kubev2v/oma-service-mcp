@@ -119,7 +119,8 @@ class Settings(BaseSettings):
         """
         from urllib.parse import urlparse
 
-        if self.AUTH_TYPE == "forwarded" and urlparse(self.MIGRATION_PLANNER_URL).scheme == "http":
+        parsed_url = urlparse(self.MIGRATION_PLANNER_URL)
+        if self.AUTH_TYPE == "forwarded" and parsed_url.scheme != "https":
             raise ValueError(
                 "MIGRATION_PLANNER_URL must use https:// when AUTH_TYPE is 'forwarded'. "
                 "Forwarding bearer tokens over plaintext HTTP exposes credentials."

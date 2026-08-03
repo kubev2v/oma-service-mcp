@@ -76,4 +76,5 @@ spec:
             periodSeconds: 30
       volumes:
         - name: tmp
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 256Mi

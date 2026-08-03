@@ -83,6 +83,7 @@ class TestSettings:
             with pytest.raises(Exception, match="must use https://"):
                 Settings()
 
+
     def test_http_allowed_with_no_auth(self):
         """Test that http:// is allowed when AUTH_TYPE is none."""
         env = {
@@ -92,6 +93,27 @@ class TestSettings:
         with patch.dict("os.environ", env, clear=True):
             s = Settings()
             assert s.MIGRATION_PLANNER_URL == "http://planner:7443"
+
+    def test_ftp_rejected_with_forwarded_auth(self):
+        """Test that ftp:// is rejected when AUTH_TYPE is forwarded."""
+        env = {
+            "MIGRATION_PLANNER_URL": "ftp://planner:7443",
+            "AUTH_TYPE": "forwarded",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            with pytest.raises(Exception, match="must use https://"):
+                Settings()
+
+
+    def test_schemeless_rejected_with_forwarded_auth(self):
+        """Test that scheme-less URLs are rejected when AUTH_TYPE is forwarded."""
+        env = {
+            "MIGRATION_PLANNER_URL": "planner:7443",
+            "AUTH_TYPE": "forwarded",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            with pytest.raises(Exception, match="must use https://"):
+                Settings()
 
     def test_https_allowed_with_forwarded_auth(self):
         """Test that https:// is accepted when AUTH_TYPE is forwarded."""
